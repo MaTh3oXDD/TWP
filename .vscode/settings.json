@@ -1,0 +1,18 @@
+{
+    "markdownlint.config": {
+        "MD028": false,
+        "MD025": {
+            "front_matter_title": ""
+        }
+    },
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "master"
+    ],
+    "dotnet.defaultSolution": "disable",
+    "cSpell.words": [
+        "iframe",
+        "MVVM",
+        "Pendrive",
+        "typeof"
+    ]
+}

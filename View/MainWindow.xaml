@@ -1,0 +1,47 @@
+﻿<Window x:Class="View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:View"
+        xmlns:vm="clr-namespace:ViewModel;assembly=ViewModel"
+        mc:Ignorable="d"
+        Title="MainWindow" Width="800" Height="450">
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+    <Grid>
+        <!-- Zmiana tekstu etykiety i wyrównania -->
+        <Label Content="Ilość kul" Margin="0,4,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0.464,0.62"  />
+
+        <!-- Zmiana szerokości TextBoxa i wyrównania -->
+        <TextBox HorizontalAlignment="Center" Margin="0,30,0,0" VerticalAlignment="Top" TextWrapping="Wrap" Text="{Binding BallsAmmount, UpdateSourceTrigger=PropertyChanged}"  Width="92" Height="16" />
+
+        <ItemsControl ItemsSource="{Binding Balls}" Width="550" Height="300">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <!-- Zmiana koloru tła Canvasa -->
+                    <Canvas Background="#a2d2ff" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <!-- Zmiana koloru wypełnienia elips -->
+                    <Ellipse Width="{Binding Radius}" Height="{Binding Radius}" Fill="#f72585" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemContainerStyle>
+                <Style>
+                    <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                    <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+        </ItemsControl>
+
+        <!-- Zmiana koloru tła przycisku Start i wyrównania -->
+        <Button Content="Start" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,80,20" Background="#87986a" Padding="8,4" Command="{Binding StartButton}"  />
+
+        <!-- Zmiana koloru tła przycisku Stop i wyrównania -->
+        <Button Content="Stop" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="80,0,0,20" Background="#b7094c" Padding="8,4" Command="{Binding StopButton}" />
+    </Grid>
+</Window>

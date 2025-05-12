@@ -1,4 +1,4 @@
-﻿using Data; // Wymaga referencji do projektu Data
+﻿using Data;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace Logic
 {
-    // Klasa musi być publiczna, aby była dostępna w projekcie LogicTest
     public class PoolTable : LogicAbstractAPI
     {
+        private readonly object _lock = new object();
+
         private int _width;
         private int _height;
         private List<Ball> _balls = new List<Ball>();
-        private DataAbstractAPI _data; // Przechowuje instancję API danych (typu Data.DataAbstractAPI)
+        private DataAbstractAPI _data;
 
         private bool _isRunning = false;
         private Task? _simulationTask;
         private CancellationTokenSource? _cancellationTokenSource;
 
-        // Konstruktor przyjmuje DataAbstractAPI z projektu Data
         public PoolTable(int width, int height, DataAbstractAPI data)
         {
             _width = width;
@@ -27,14 +27,13 @@ namespace Logic
             _data = data;
         }
 
-        // ... (reszta kodu klasy PoolTable jak w poprzedniej odpowiedzi)
-        // Upewnij się, że metoda ResolveBallCollision i inne metody kolizji/ruchu są zaimplementowane.
-        // Upewnij się, że implementacja StartGame i StopGame używa _isRunning, Task i CancellationTokenSource.
-
         public override void CreateBalls(int ballsQuantity, int radius)
         {
             Random random = new Random();
-            _balls.Clear();
+            lock (_lock)
+            {
+                _balls.Clear();
+            }
 
             float minDistanceSquared = (2f * radius) * (2f * radius) * 1.1f;
 
@@ -51,13 +50,16 @@ namespace Logic
                     y = (float)(random.NextDouble() * (_height - 2 * radius) + radius);
 
                     bool colliding = false;
-                    foreach (Ball existingBall in _balls)
+                    lock (_lock)
                     {
-                        float distanceSquared = Vector2.DistanceSquared(new Vector2(x, y), new Vector2(existingBall.X, existingBall.Y));
-                        if (distanceSquared < (2f * radius) * (2f * radius))
+                        foreach (Ball existingBall in _balls)
                         {
-                            colliding = true;
-                            break;
+                            float distanceSquared = Vector2.DistanceSquared(new Vector2(x, y), new Vector2(existingBall.X, existingBall.Y));
+                            if (distanceSquared < (2f * radius) * (2f * radius))
+                            {
+                                colliding = true;
+                                break;
+                            }
                         }
                     }
 
@@ -68,7 +70,10 @@ namespace Logic
                         float mass = (float)(random.NextDouble() * 1.5 + 0.5);
 
                         Ball ball = new Ball(x, y, radius, vx, vy, mass);
-                        _balls.Add(ball);
+                        lock (_lock)
+                        {
+                            _balls.Add(ball);
+                        }
                         positionFound = true;
                     }
                     attempts++;
@@ -82,26 +87,35 @@ namespace Logic
 
         public override IReadOnlyList<Ball> GetAllBalls()
         {
-            return _balls.AsReadOnly();
+            lock (_lock)
+            {
+                return _balls.AsReadOnly();
+            }
         }
 
         public override void StartGame()
         {
-            if (_isRunning) return;
+            lock (_lock)
+            {
+                if (_isRunning) return;
 
-            _isRunning = true;
-            _cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken token = _cancellationTokenSource.Token;
+                _isRunning = true;
+                _cancellationTokenSource = new CancellationTokenSource();
+                CancellationToken token = _cancellationTokenSource.Token;
 
-            _simulationTask = Task.Run(() => SimulationLoop(token), token);
+                _simulationTask = Task.Run(() => SimulationLoop(token), token);
+            }
         }
 
         public override void StopGame()
         {
-            if (!_isRunning) return;
+            lock (_lock)
+            {
+                if (!_isRunning) return;
 
-            _isRunning = false;
-            _cancellationTokenSource?.Cancel();
+                _isRunning = false;
+                _cancellationTokenSource?.Cancel();
+            }
         }
 
         public override int Width => _width;
@@ -113,12 +127,15 @@ namespace Logic
 
             while (_isRunning && !token.IsCancellationRequested)
             {
-                foreach (Ball ball in _balls)
+                lock (_lock)
                 {
-                    ball.Move(_width, _height);
-                }
+                    foreach (Ball ball in _balls)
+                    {
+                        ball.Move(_width, _height);
+                    }
 
-                CheckBallCollisions();
+                    CheckBallCollisions();
+                }
 
                 Thread.Sleep(simulationDelay);
             }

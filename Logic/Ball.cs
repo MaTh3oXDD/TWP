@@ -7,6 +7,8 @@ namespace Logic
 {
     public class Ball : INotifyPropertyChanged
     {
+        private readonly object _lock = new object();
+
         private float _x;
         private float _y;
         private float _vx;
@@ -16,29 +18,40 @@ namespace Logic
 
         public float Mass
         {
-            get => _mass;
+            get
+            {
+                lock (_lock)
+                {
+                    return _mass;
+                }
+            }
             set
             {
                 if (value > 0)
                 {
-                    _mass = value;
+                    lock (_lock)
+                    {
+                        _mass = value;
+                    }
                 }
                 else
                 {
                     throw new ArgumentOutOfRangeException(nameof(Mass), "Mass must be positive.");
                 }
+
             }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public void OnPropertyChanged([CallerMemberName] string? name = null) // Zmieniono na string?
+        public void OnPropertyChanged([CallerMemberName] string? name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         public Ball(float x, float y, int radius, float vx, float vy, float mass)
         {
+
             _x = x;
             _y = y;
             if (radius <= 0)
@@ -54,72 +67,130 @@ namespace Logic
 
         public float X
         {
-            get => _x;
-            set { _x = value; OnPropertyChanged(nameof(X)); }
+            get
+            {
+                lock (_lock)
+                {
+                    return _x;
+                }
+            }
+            set
+            {
+                lock (_lock)
+                {
+                    _x = value;
+                }
+                OnPropertyChanged(nameof(X));
+            }
         }
 
         public float Y
         {
-            get => _y;
-            set { _y = value; OnPropertyChanged(nameof(Y)); }
+            get
+            {
+                lock (_lock)
+                {
+                    return _y;
+                }
+            }
+            set
+            {
+                lock (_lock)
+                {
+                    _y = value;
+                }
+                OnPropertyChanged(nameof(Y));
+            }
         }
 
         public float Vx
         {
-            get => _vx;
-            set => _vx = value;
+            get
+            {
+                lock (_lock)
+                {
+                    return _vx;
+                }
+            }
+            set
+            {
+                lock (_lock)
+                {
+                    _vx = value;
+                }
+            }
         }
 
         public float Vy
         {
-            get => _vy;
-            set => _vy = value;
+            get
+            {
+                lock (_lock)
+                {
+                    return _vy;
+                }
+            }
+            set
+            {
+                lock (_lock)
+                {
+                    _vy = value;
+                }
+            }
         }
 
         public int Radius
         {
-            get => _radius;
+            get
+            {
+                return _radius;
+            }
         }
 
         public double Diameter
         {
-            get => _radius * 2.0;
+            get
+            {
+                return _radius * 2.0;
+            }
         }
 
         public void Move(int width, int height)
         {
-            _x += _vx;
-            _y += _vy;
-
-            bool collidedX = false;
-            bool collidedY = false;
-
-            if (_x - _radius < 0)
+            lock (_lock)
             {
-                _x = _radius;
-                _vx = -_vx;
-                collidedX = true;
-            }
-            else if (_x + _radius > width)
-            {
-                _x = width - _radius;
-                _vx = -_vx;
-                collidedX = true;
-            }
+                _x += _vx;
+                _y += _vy;
 
-            if (_y - _radius < 0)
-            {
-                _y = _radius;
-                _vy = -_vy;
-                collidedY = true;
-            }
-            else if (_y + _radius > height)
-            {
-                _y = height - _radius;
-                _vy = -_vy;
-                collidedY = true;
-            }
+                bool collidedX = false;
+                bool collidedY = false;
 
+                if (_x - _radius < 0)
+                {
+                    _x = _radius;
+                    _vx = -_vx;
+                    collidedX = true;
+                }
+                else if (_x + _radius > width)
+                {
+                    _x = width - _radius;
+                    _vx = -_vx;
+                    collidedX = true;
+                }
+
+                if (_y - _radius < 0)
+                {
+                    _y = _radius;
+                    _vy = -_vy;
+                    collidedY = true;
+                }
+                else if (_y + _radius > height)
+                {
+                    _y = height - _radius;
+                    _vy = -_vy;
+                    collidedY = true;
+                }
+            }
             OnPropertyChanged(nameof(X));
             OnPropertyChanged(nameof(Y));
         }

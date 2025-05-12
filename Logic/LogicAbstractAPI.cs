@@ -1,4 +1,5 @@
-﻿using Data;
+﻿using System.Collections.Generic;
+using Data;
 
 namespace Logic
 {
@@ -14,6 +15,6 @@ namespace Logic
         public abstract void StopGame();
         public abstract int Width { get; }
         public abstract int Height { get; }
-        public abstract List<Ball> GetAllBalls();
+        public abstract IReadOnlyList<Ball> GetAllBalls();
     }
 }

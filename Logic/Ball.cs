@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
+using Logic.Utils;
 
 namespace Logic
 {
@@ -14,6 +15,8 @@ namespace Logic
         private float _vx;
         private float _vy;
         private readonly int _radius;
+        private readonly IDiagnosticsLogger _logger;
+
         public float Mass { get; }
         private volatile bool _running = true;
 
@@ -21,11 +24,13 @@ namespace Logic
 
         public void Stop() => _running = false;
 
-        public Ball(float x, float y, int radius, float vx, float vy, float mass)
+        public Ball(float x, float y, int radius, float vx, float vy, float mass, IDiagnosticsLogger logger)
         {
             _x = x; _y = y; _radius = radius;
             _vx = vx; _vy = vy; Mass = mass;
+            _logger = logger;
         }
+
 
         public float X
         {
@@ -88,6 +93,9 @@ namespace Logic
 
             OnPropertyChanged(nameof(X));
             OnPropertyChanged(nameof(Y));
+
+            _logger.Log($"Ball pos=({_x:F3}, {_y:F3})  vel=({_vx:F3}, {_vy:F3})");
+
         }
 
         private void CheckCollisions(List<Ball> balls)

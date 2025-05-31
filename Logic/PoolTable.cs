@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Data;
+using Logic.Utils;
 
 namespace Logic
 {
@@ -11,11 +12,13 @@ namespace Logic
         private int _height;
         private readonly object _lock = new object();
         private List<Ball> _balls = new List<Ball>();
+        // Usunięto IDiagnosticsLogger, bo nie jest dostępny w kontekście
 
         public PoolTable(int width, int height, DataAbstractAPI data)
         {
             _width = width;
             _height = height;
+            // Usunięto _logger = data?.GetLogger(); bo nie istnieje taka metoda
         }
 
         public override void CreateBalls(int ballsQuantity, int radius)
@@ -55,7 +58,8 @@ namespace Logic
                             while (Math.Abs(vy) < 0.2f) vy = (float)(random.NextDouble() * 6 - 3);
 
                             float mass = random.Next(1, 10);
-                            _balls.Add(new Ball(x, y, radius, vx, vy, mass));
+                            IDiagnosticsLogger logger = new DiagnosticsLogger("log.txt");
+                            _balls.Add(new Ball(x, y, radius, vx, vy, mass, logger)); // przekazujemy null jako logger
                             positionFound = true;
                         }
                         attempts++;

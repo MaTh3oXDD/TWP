@@ -1,87 +1,70 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using Logic; // Zakładam, że Ball z Logic jest potrzebne do UpdateBall
+using System.Text;
+using System.Threading.Tasks;
+
+using Logic;
 
 namespace Model
 {
     public class ModelBall : INotifyPropertyChanged
     {
-        private double _x;
-        private double _y;
-        private double _radius;
+        private float _x;
+        private float _y;
+        private readonly int _radius;
 
-        public ModelBall(double x, double y, double radius)
+        public ModelBall(float x, float y, int radius)
         {
             _x = x;
             _y = y;
             _radius = radius;
         }
 
-        public double X
+        public float X
         {
             get => _x;
-            // Setter zmieniony na private, ponieważ aktualizacja powinna iść przez UpdateBall
-            private set
-            {
-                if (_x != value)
-                {
-                    _x = value;
-                    OnPropertyChanged(nameof(X));
-                    OnPropertyChanged(nameof(DisplayX)); // Zgłoś zmianę dla DisplayX
-                }
-            }
+            set {
+                _x = value;
+                OnPropertyChanged();
+            } 
         }
 
-        public double Y
+        public float Y
         {
             get => _y;
-            // Setter zmieniony na private
-            private set
+            set
             {
-                if (_y != value)
-                {
-                    _y = value;
-                    OnPropertyChanged(nameof(Y));
-                    OnPropertyChanged(nameof(DisplayY)); // Zgłoś zmianę dla DisplayY
-                }
+                _y = value;
+                OnPropertyChanged();
             }
         }
 
-        public double Radius
+        public int Radius
         {
             get => _radius;
-            // Zakładam, że promień się nie zmienia po utworzeniu.
-            // Jeśli się zmienia, dodaj setter i zgłoś zmiany dla Radius, Diameter, DisplayX, DisplayY.
         }
 
-        // Nowe właściwości do powiązania w XAML
-        public double DisplayX => X - Radius; // Pozycja X dla lewego górnego rogu elipsy
-        public double DisplayY => Y - Radius; // Pozycja Y dla lewego górnego rogu elipsy
-        public double Diameter => 2 * Radius; // Średnica dla szerokości i wysokości elipsy
-
-        // Metoda do aktualizacji pozycji kulki z warstwy logiki
-        // Upewnij się, że obiekt Ball z warstwy Logic poprawnie implementuje INotifyPropertyChanged
-        // i że te zdarzenia są obsługiwane (np. w PoolTable.cs).
-        public void UpdateBall(object? sender, PropertyChangedEventArgs e)
+        public void UpdateBall(Object s, PropertyChangedEventArgs e)
         {
-            // Upewnij się, że sender jest oczekiwanym typem Ball z warstwy Logic
-            if (sender is Logic.Ball logicBall)
+           Ball ball = (Ball)s;
+            if(e.PropertyName == "X")
             {
-                // Zaktualizuj właściwości ModelBall na podstawie danych z Logic.Ball
-                // Settery X i Y w ModelBall zajmą się zgłoszeniem PropertyChanged dla siebie i DisplayX/DisplayY
-                this.X = logicBall.X;
-                this.Y = logicBall.Y;
-                // Jeśli Radius w Logic.Ball może się zmieniać, zaktualizuj i zgłoś zmianę dla Radius, Diameter, DisplayX, DisplayY
-                // this.Radius = logicBall.Radius;
+                X = ball.X;
+            }
+            else if (e.PropertyName == "Y")
+            {
+                Y = ball.Y;
             }
         }
-
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string name = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }

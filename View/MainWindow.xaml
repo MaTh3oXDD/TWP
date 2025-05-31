@@ -6,46 +6,47 @@
         xmlns:local="clr-namespace:View"
         xmlns:vm="clr-namespace:ViewModel;assembly=ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Width="800" Height="450">
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <!-- Zmiana tekstu etykiety i wyrównania -->
+        <Label Content="Ilość kul" Margin="0,4,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0.464,0.62"  />
 
-        <Label Grid.Row="0" Content="Ilość kul" HorizontalAlignment="Center" Margin="0,4,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.464,0.62"/>
+        <!-- Zmiana szerokości TextBoxa i wyrównania -->
+        <TextBox HorizontalAlignment="Center" Margin="0,30,0,0" VerticalAlignment="Top" TextWrapping="Wrap" Text="{Binding BallsAmmount, UpdateSourceTrigger=PropertyChanged}"  Width="92" Height="16" />
 
-        <TextBox Grid.Row="1" HorizontalAlignment="Center" Margin="0,5,0,0" VerticalAlignment="Top" TextWrapping="Wrap" Text="{Binding BallsAmmount, UpdateSourceTrigger=PropertyChanged}" Width="92" Height="16"/>
-
-        <ItemsControl Grid.Row="2" ItemsSource="{Binding Balls}" Width="550" Height="300" HorizontalAlignment="Center" VerticalAlignment="Top">
+        <!-- TUTAJ ZNAJDUJE SIĘ TWÓJ ITEMSCONTROL -->
+        <ItemsControl ItemsSource="{Binding Balls}" Width="550" Height="300">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Canvas Background="#a2d2ff"/>
+                    <!-- Zmiana koloru tła Canvasa -->
+                    <Canvas Background="#a2d2ff" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Ellipse Width="{Binding Diameter}"
-                             Height="{Binding Diameter}"
-                             Fill="#f72585"/>
+                    <!-- Zmiana koloru wypełnienia elips -->
+                    <!-- Używamy właściwości Diameter dla szerokości i wysokości -->
+                    <!-- PAMIĘTAJ, ABY POWIĄZAĆ Z DIAMETER, NIE RADIUS, JEŚLI TAK ZMIENIŁEŚ W KLASIE Ball -->
+                    <Ellipse Width="30"
+                             Height="30"
+                             Fill="#f72585" />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
             <ItemsControl.ItemContainerStyle>
                 <Style>
-                    <Setter Property="Canvas.Top" Value="{Binding DisplayY}"/>
-                    <Setter Property="Canvas.Left" Value="{Binding DisplayX}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                    <Setter Property="Canvas.Left" Value="{Binding X}"/>
                 </Style>
             </ItemsControl.ItemContainerStyle>
         </ItemsControl>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,10">
-            <Button Content="Start" Margin="0,0,20,0" Background="#87986a" Padding="8,4" Command="{Binding StartButton}"/>
-            <Button Content="Stop" Margin="20,0,0,0" Background="#b7094c" Padding="8,4" Command="{Binding StopButton}"/>
-        </StackPanel>
+        <!-- Zmiana koloru tła przycisku Start i wyrównania -->
+        <Button Content="Start" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,80,20" Background="#87986a" Padding="8,4" Command="{Binding StartButton}"  />
+
+        <!-- Zmiana koloru tła przycisku Stop i wyrównania -->
+        <Button Content="Stop" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="80,0,0,20" Background="#b7094c" Padding="8,4" Command="{Binding StopButton}" />
     </Grid>
 </Window>

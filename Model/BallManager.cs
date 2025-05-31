@@ -1,10 +1,5 @@
 ﻿using Logic;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Model
 {
@@ -31,16 +26,8 @@ namespace Model
         }
 
         public override ObservableCollection<ModelBall> Balls => balls;
-        
 
-        public override void StartGame()
-        {
-            poolTable.StartGame();
-        }
-
-        public override void StopGame()
-        {
-            poolTable.StopGame();
-        }
+        public override void StartGame() { poolTable.StartGame(); }
+        public override void StopGame() { poolTable.StopGame(); }
     }
 }

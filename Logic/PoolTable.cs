@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Timers;
 using Data;
 using Logic.Utils;
 
@@ -12,20 +12,20 @@ namespace Logic
         private int _height;
         private readonly object _lock = new object();
         private List<Ball> _balls = new List<Ball>();
-        // Usunięto IDiagnosticsLogger, bo nie jest dostępny w kontekście
+        private System.Timers.Timer? _timer;
+        private DateTime _lastTick = DateTime.Now;
 
         public PoolTable(int width, int height, DataAbstractAPI data)
         {
             _width = width;
             _height = height;
-            // Usunięto _logger = data?.GetLogger(); bo nie istnieje taka metoda
         }
 
         public override void CreateBalls(int ballsQuantity, int radius)
         {
             lock (_lock)
             {
-                foreach (var b in _balls) b.Stop();
+                StopGame();
                 _balls.Clear();
 
                 Random random = new Random();
@@ -59,31 +59,63 @@ namespace Logic
 
                             float mass = random.Next(1, 10);
                             IDiagnosticsLogger logger = new DiagnosticsLogger("log.txt");
-                            _balls.Add(new Ball(x, y, radius, vx, vy, mass, logger)); // przekazujemy null jako logger
+                            _balls.Add(new Ball(x, y, radius, vx, vy, mass, logger));
                             positionFound = true;
                         }
                         attempts++;
                     }
                 }
-
-                // Dopiero po utworzeniu całej listy ruszamy wątki!
-                foreach (var ball in _balls)
-                {
-                    Task.Run(() => ball.Run(_width, _height, _balls));
-                }
+                StartGame();
             }
         }
 
-        public override void StartGame() { /* Nieużywane: wątki startują po CreateBalls */ }
+        public override void StartGame()
+        {
+            lock (_lock)
+            {
+                if (_timer != null)
+                {
+                    _timer.Stop();
+                    _timer.Dispose();
+                    _timer = null;
+                }
+
+                _lastTick = DateTime.Now;
+
+                _timer = new System.Timers.Timer(16.0);
+                _timer.Elapsed += OnTimerElapsed;
+                _timer.AutoReset = true;
+                _timer.Start();
+            }
+        }
+
+        private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+        {
+            lock (_lock)
+            {
+                var now = DateTime.Now;
+                float delta = (float)(now - _lastTick).TotalSeconds;
+                _lastTick = now;
+
+                foreach (var ball in _balls)
+                {
+                    ball.Move(_width, _height, _balls, delta);
+                }
+            }
+        }
 
         public override void StopGame()
         {
             lock (_lock)
             {
+                if (_timer != null)
+                {
+                    _timer.Stop();
+                    _timer.Dispose();
+                    _timer = null;
+                }
                 foreach (var ball in _balls)
                     ball.Stop();
-                // NIE czyść _balls! Kulki muszą skończyć pętlę, a widok (ItemsControl) pobiera ich pozycje!
-                // _balls.Clear(); // ← usuń ten wiersz, jak wcześniej opisałem
             }
         }
 
@@ -94,7 +126,7 @@ namespace Logic
         {
             lock (_lock)
             {
-                return new List<Ball>(_balls); // kopia dla bezpieczeństwa
+                return new List<Ball>(_balls);
             }
         }
     }

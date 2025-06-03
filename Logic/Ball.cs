@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Threading;
 using Logic.Utils;
 
 namespace Logic
@@ -31,7 +30,6 @@ namespace Logic
             _logger = logger;
         }
 
-
         public float X
         {
             get => _x;
@@ -58,7 +56,6 @@ namespace Logic
 
         public int Radius => _radius;
 
-        // Możesz poprawić delay wedle preferencji, 16ms ~ 60 FPS
         public void Run(int width, int height, List<Ball> balls, object data = null!)
         {
             var lastTime = DateTime.Now;
@@ -66,24 +63,21 @@ namespace Logic
             {
                 var now = DateTime.Now;
                 var delta = (float)(now - lastTime).TotalSeconds;
-                if (delta < 0.016f) // czekaj na pełny tick ~60Hz
+                if (delta < 0.016f)
                 {
-                    Thread.Sleep(1);
+                    System.Threading.Thread.Sleep(1);
                     continue;
                 }
                 lastTime = now;
-
                 Move(width, height, balls, delta);
             }
         }
 
-        private void Move(int width, int height, List<Ball> balls, float deltaTime)
+        public void Move(int width, int height, List<Ball> balls, float deltaTime)
         {
-            // Prosta fizyka
             _x += _vx * deltaTime * 60;
             _y += _vy * deltaTime * 60;
 
-            // Odbicia od ścian
             if (_x < 0) { _x = 0; _vx = -_vx; }
             if (_x + _radius * 2 > width) { _x = width - _radius * 2; _vx = -_vx; }
             if (_y < 0) { _y = 0; _vy = -_vy; }
@@ -95,7 +89,6 @@ namespace Logic
             OnPropertyChanged(nameof(Y));
 
             _logger.Log($"Ball pos=({_x:F3}, {_y:F3})  vel=({_vx:F3}, {_vy:F3})");
-
         }
 
         private void CheckCollisions(List<Ball> balls)
@@ -111,9 +104,7 @@ namespace Logic
                 float minDist = this.Radius + other.Radius;
                 if (distance < minDist && distance > 0)
                 {
-                    // Krok 1: rozdziel, by nie zachodziły
-
-                    float overlap = 0.5f * (minDist - distance + 0.01f); // +0.01f zapobiega dzieleniu przez zero
+                    float overlap = 0.5f * (minDist - distance + 0.01f);
                     float ox = overlap * dx / distance;
                     float oy = overlap * dy / distance;
                     this._x -= ox;
@@ -121,21 +112,17 @@ namespace Logic
                     other._x += ox;
                     other._y += oy;
 
-                    // Krok 2: prawidłowe odbicie:
-                    // Wyznacz normalną i styczną zderzenia
                     float nx = dx / distance;
                     float ny = dy / distance;
                     float tx = -ny;
                     float ty = nx;
 
-                    // Składowe wzdłuż osi
                     float dpTan1 = this._vx * tx + this._vy * ty;
                     float dpTan2 = other._vx * tx + other._vy * ty;
 
                     float dpNorm1 = this._vx * nx + this._vy * ny;
                     float dpNorm2 = other._vx * nx + other._vy * ny;
 
-                    // Zasada zachowania pędu i energii (równe masy dla uproszczenia — jeśli nie, użyj mas...)
                     float m1 = this.Mass;
                     float m2 = other.Mass;
                     float momentum1 = (dpNorm1 * (m1 - m2) + 2 * m2 * dpNorm2) / (m1 + m2);
@@ -148,7 +135,6 @@ namespace Logic
                 }
             }
         }
-
 
         private void OnPropertyChanged([CallerMemberName] string name = null!)
         {

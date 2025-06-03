@@ -13,6 +13,8 @@ namespace Logic
         private readonly object _lock = new object();
         private List<Ball> _balls = new List<Ball>();
         private System.Timers.Timer? _timer;
+        private System.Timers.Timer? _logTimer;
+
         private DateTime _lastTick = DateTime.Now;
 
         public PoolTable(int width, int height, DataAbstractAPI data)
@@ -79,15 +81,52 @@ namespace Logic
                     _timer.Dispose();
                     _timer = null;
                 }
+                if (_logTimer != null)
+                {
+                    _logTimer.Stop();
+                    _logTimer.Dispose();
+                    _logTimer = null;
+                }
 
                 _lastTick = DateTime.Now;
 
-                _timer = new System.Timers.Timer(16.0);
+                _timer = new System.Timers.Timer(16.0); // fizyka
                 _timer.Elapsed += OnTimerElapsed;
                 _timer.AutoReset = true;
                 _timer.Start();
+
+                _logTimer = new System.Timers.Timer(1000.0); // 1000 ms = 1s
+                _logTimer.Elapsed += OnLogTimerElapsed;
+                _logTimer.AutoReset = true;
+                _logTimer.Start();
             }
         }
+
+        private void OnLogTimerElapsed(object? sender, ElapsedEventArgs e)
+        {
+            lock (_lock)
+            {
+                foreach (var ball in _balls)
+                {
+
+                    ball?.GetType().GetProperty("X")?.GetValue(ball);
+                    if (ball != null)
+                    {
+                        var loggerField = typeof(Ball).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (loggerField != null)
+                        {
+                            var logger = loggerField.GetValue(ball) as IDiagnosticsLogger;
+                            if (logger != null)
+                            {
+                                string message = $"Ball: X={ball.X}, Y={ball.Y}, Vx={ball.Vx}, Vy={ball.Vy}, t={DateTime.Now:O}";
+                                logger.Log(message);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
         private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
         {
@@ -114,10 +153,17 @@ namespace Logic
                     _timer.Dispose();
                     _timer = null;
                 }
+                if (_logTimer != null)
+                {
+                    _logTimer.Stop();
+                    _logTimer.Dispose();
+                    _logTimer = null;
+                }
                 foreach (var ball in _balls)
                     ball.Stop();
             }
         }
+
 
         public override int Width => _width;
         public override int Height => _height;
